@@ -5,31 +5,38 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// TEMP USERS (we'll move to database later)
+// USERS
 const users = [
-  {
-    username: "admin",
-    password: "admin123",
-    role: "admin"
-  }
+  { username: "admin", password: "admin123", role: "admin" }
 ];
 
-// LOGIN ENDPOINT
+// JOB STORAGE (temporary database)
+let jobs = [];
+
+// LOGIN
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
-
   const user = users.find(
     u => u.username === username && u.password === password
   );
+  if (!user) return res.status(401).json({ message: "Invalid credentials" });
+  res.json({ username: user.username, role: user.role });
+});
 
-  if (!user) {
-    return res.status(401).json({ message: "Invalid credentials" });
-  }
+// SAVE JOB
+app.post("/jobs", (req, res) => {
+  const job = {
+    id: Date.now(),
+    ...req.body,
+    createdAt: new Date().toISOString()
+  };
+  jobs.push(job);
+  res.json(job);
+});
 
-  res.json({
-    username: user.username,
-    role: user.role
-  });
+// GET ALL JOBS
+app.get("/jobs", (req, res) => {
+  res.json(jobs);
 });
 
 // HEALTH CHECK
